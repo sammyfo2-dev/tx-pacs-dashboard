@@ -16921,15 +16921,19 @@ function createMarketItem(metroName) {
     const ensignShare = total ? (ensignFacs.length / total * 100).toFixed(1) : '0.0';
     const pacsShare   = total ? (pacsFacs.length   / total * 100).toFixed(1) : '0.0';
 
-    const rated = facs.filter(f => f.rating > 0);
-    const avgRating = rated.length
-        ? (rated.reduce((s, f) => s + f.rating, 0) / rated.length).toFixed(1)
-        : '—';
+    const avgOf = (arr, key) => {
+        const v = arr.filter(f => f[key] > 0);
+        return v.length ? (v.reduce((s,f) => s + f[key], 0) / v.length).toFixed(1) : '—';
+    };
 
-    const withOcc = facs.filter(f => f.occupancy > 0);
-    const avgOcc  = withOcc.length
-        ? (withOcc.reduce((s, f) => s + f.occupancy, 0) / withOcc.length).toFixed(1)
-        : '—';
+    const avgRating    = avgOf(facs,      'rating');
+    const avgOcc       = avgOf(facs,      'occupancy');
+    const ensignRating = avgOf(ensignFacs,'rating');
+    const pacsRating   = avgOf(pacsFacs,  'rating');
+    const ensignOcc    = avgOf(ensignFacs,'occupancy');
+    const pacsOcc      = avgOf(pacsFacs,  'occupancy');
+
+    const star = v => v !== '—' ? v + ' &#9733;' : '—';
 
     const top3 = stats.slice(0, 3);
     const top3Html = top3.map(op =>
@@ -16941,22 +16945,23 @@ function createMarketItem(metroName) {
     return `
         <div class="market-item" onclick="showMarketDetails('${safeMetro}')">
             <h3>
-                ${metroName}
+                ${metroName} <span style="font-weight:400;color:#6c757d;font-size:0.9rem;">(${total} facilities)</span>
                 ${ensignFacs.length > 0 ? '<span class="badge ensign">Ensign</span>' : ''}
                 ${pacsFacs.length   > 0 ? '<span class="badge pacs">PACS</span>'   : ''}
             </h3>
             <div class="market-stats">
-                <div><span class="label">Total Facilities:</span><span class="value">${total}</span></div>
-                <div><span class="label">Avg Rating:</span><span class="value">${avgRating} &#9733;</span></div>
+                <div><span class="label">Avg Rating:</span><span class="value">${star(avgRating)}</span></div>
+                <div><span class="label">Avg Occupancy:</span><span class="value">${avgOcc !== '—' ? avgOcc + '%' : '—'}</span></div>
                 <div><span class="label">Ensign Share:</span>
                     <span class="value">${ensignShare}% (${ensignFacs.length})</span></div>
-                <div><span class="label">Avg Occupancy:</span><span class="value">${avgOcc}%</span></div>
                 <div><span class="label">PACS Share:</span>
                     <span class="value" style="color:#9b59b6;">${pacsShare}% (${pacsFacs.length})</span></div>
-                <div><span class="label">Ensign Avg Rating:</span>
-                    <span class="value">${ensignFacs.filter(f=>f.rating>0).length
-                        ? (ensignFacs.filter(f=>f.rating>0).reduce((s,f)=>s+f.rating,0)/ensignFacs.filter(f=>f.rating>0).length).toFixed(1)+' &#9733;'
-                        : '—'}</span></div>
+                <div><span class="label">Ensign Avg Rating:</span><span class="value">${star(ensignRating)}</span></div>
+                <div><span class="label">PACS Avg Rating:</span><span class="value">${star(pacsRating)}</span></div>
+                <div><span class="label">Ensign Avg Occupancy:</span>
+                    <span class="value">${ensignOcc !== '—' ? ensignOcc + '%' : '—'}</span></div>
+                <div><span class="label">PACS Avg Occupancy:</span>
+                    <span class="value">${pacsOcc !== '—' ? pacsOcc + '%' : '—'}</span></div>
             </div>
             ${top3Html ? `<div class="top-op-pills">${top3Html}</div>` : ''}
         </div>`;
